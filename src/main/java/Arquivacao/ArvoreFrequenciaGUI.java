@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.Arrays;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+
 public class ArvoreFrequenciaGUI extends JFrame {
 
     private JTextField caminhoArquivoField;
@@ -27,6 +28,8 @@ public class ArvoreFrequenciaGUI extends JFrame {
     private JButton botaoMostrarAVL;
     private JButton botaoVisualizarEstruturaBST;
     private JButton botaoVisualizarEstruturaAVL;
+    private JButton botaoEstatisticasBST;
+    private JButton botaoEstatisticasAVL;
 
     private BSTree bst;
     private AVLTree avl;
@@ -36,7 +39,8 @@ public class ArvoreFrequenciaGUI extends JFrame {
 
     private Set<String> stopWords;
 
-    private static final String STOPWORDS = "de a o que e do da em um para é com não uma os no se na por mais as dos como mas foi ao ele das tem à seu sua ou ser quando muito há nos já está eu também só pelo pela até isso ela entre era depois sem mesmo aos ter seus quem nas me esse eles estão você tinha foram essa num nem suas meu às minha têm numa pelos elas havia seja qual será nós tenho lhe deles essas esses pelas este fosse dele tu te vocês vos lhes meus minhas teu tua teus tuas nosso nossa nossos nossas dela delas esta estes estas aquele aquela aqueles aquelas isto aquilo estou está estamos estão estive esteve estivemos estiveram estava estávamos estavam estivera estivéramos esteja estejamos estejam estivesse estivéssemos estivessem estiver estivermos estiverem hei há havemos hão houve houvemos houveram houvera houvéramos haja hajamos hajam houvesse houvéssemos houvessem houver houvermos houverem houverei houverá houveremos houverão houveria houveríamos houveriam sou somos são era éramos eram fui foi fomos foram fora fôramos seja sejamos sejam fosse fôssemos fossem for formos forem serei será seremos serão seria seríamos seriam tenho tem temos tém tinha tínhamos tinham tive teve tivemos tiveram tivera tivéramos tenha tenhamos tenham tivesse tivéssemos tivessem tiver tivermos tiverem terei terá teremos terão teria teríamos teriam";
+    private static final String STOPWORDS =
+            "de a o que e do da em um para é com não uma os no se na por mais as dos como mas foi ao ele das tem à seu sua ou ser quando muito há nos já está eu também só pelo pela até isso ela entre era depois sem mesmo aos ter seus quem nas me esse eles estão você tinha foram essa num nem suas meu às minha têm numa pelos elas havia seja qual será nós tenho lhe deles essas esses pelas este fosse dele tu te vocês vos lhes meus minhas teu tua teus tuas nosso nossa nossos nossas dela delas esta estes estas aquele aquela aqueles aquelas isto aquilo estou está estamos estão estive esteve estivemos estiveram estava estávamos estavam estivera estivéramos esteja estejamos estejam estivesse estivéssemos estivessem estiver estivermos estiverem hei há havemos hão houve houvemos houveram houvera houvéramos haja hajamos hajam houvesse houvéssemos houvessem houver houvermos houverem houverei houverá houveremos houverão houveria houveríamos houveriam sou somos são era éramos eram fui foi fomos foram fora fôramos seja sejamos sejam fosse fôssemos fossem for formos forem serei será seremos serão seria seríamos seriam tenho tem temos tém tinha tínhamos tinham tive teve tivemos tiveram tivera tivéramos tenha tenhamos tenham tivesse tivéssemos tivessem tiver tivermos tiverem terei terá teremos terão teria teríamos teriam";
 
     public ArvoreFrequenciaGUI() {
         super("Contador de Frequência - Árvores BST e AVL");
@@ -56,12 +60,16 @@ public class ArvoreFrequenciaGUI extends JFrame {
         botaoMostrarAVL = new JButton("Mostrar Árvore AVL");
         botaoVisualizarEstruturaBST = new JButton("Visualizar Estrutura BST");
         botaoVisualizarEstruturaAVL = new JButton("Visualizar Estrutura AVL");
+        botaoEstatisticasBST = new JButton("Estatísticas BST");
+        botaoEstatisticasAVL = new JButton("Estatísticas AVL");
 
-        // Inicialmente desabilitados os botões de exibir árvores e estruturas
+        // Inicialmente desabilitados
         botaoMostrarBST.setEnabled(false);
         botaoMostrarAVL.setEnabled(false);
         botaoVisualizarEstruturaBST.setEnabled(false);
         botaoVisualizarEstruturaAVL.setEnabled(false);
+        botaoEstatisticasBST.setEnabled(false);
+        botaoEstatisticasAVL.setEnabled(false);
 
         add(caminhoArquivoField);
         add(botaoSelecionarArquivo);
@@ -70,8 +78,10 @@ public class ArvoreFrequenciaGUI extends JFrame {
         add(botaoMostrarAVL);
         add(botaoVisualizarEstruturaBST);
         add(botaoVisualizarEstruturaAVL);
+        add(botaoEstatisticasBST);
+        add(botaoEstatisticasAVL);
 
-        setSize(650, 150);
+        setSize(700, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -83,6 +93,9 @@ public class ArvoreFrequenciaGUI extends JFrame {
 
         botaoVisualizarEstruturaBST.addActionListener(e -> mostrarEstruturaArvore(bst.getStructureString(), "Estrutura da Árvore BST"));
         botaoVisualizarEstruturaAVL.addActionListener(e -> mostrarEstruturaArvore(avl.getStructureString(), "Estrutura da Árvore AVL"));
+
+        botaoEstatisticasBST.addActionListener(e -> mostrarEstatisticas(bst.stats, "Estatísticas BST"));
+        botaoEstatisticasAVL.addActionListener(e -> mostrarEstatisticas(avl.stats, "Estatísticas AVL"));
     }
 
     private void selecionarArquivo() {
@@ -110,6 +123,7 @@ public class ArvoreFrequenciaGUI extends JFrame {
         avlOutput = new StringBuilder();
 
         StringBuilder textoCompleto = new StringBuilder();
+
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             while ((linha = br.readLine()) != null) {
@@ -123,7 +137,7 @@ public class ArvoreFrequenciaGUI extends JFrame {
         String texto = removerAcentos(textoCompleto.toString().toLowerCase());
         String[] palavras = texto.split("[^a-zA-Z]+");
 
-        // ======= BST =======
+        // ====== MEDIR TEMPO BST ======
         long tempoBuscaBSTNano = 0;
         long inicioBST = System.nanoTime();
         for (String palavra : palavras) {
@@ -139,10 +153,10 @@ public class ArvoreFrequenciaGUI extends JFrame {
             }
         }
         long fimBST = System.nanoTime();
-        double tempoTotalBST = (fimBST - inicioBST) / 1_000_000.0;
-        double tempoBuscaBST = tempoBuscaBSTNano / 1_000_000.0;
+        bst.stats.tempoTotalMs = (fimBST - inicioBST) / 1_000_000.0;
+        bst.stats.tempoBuscaMs = tempoBuscaBSTNano / 1_000_000.0;
 
-        // ======= AVL =======
+        // ====== MEDIR TEMPO AVL ======
         long tempoBuscaAVLNano = 0;
         long inicioAVL = System.nanoTime();
         for (String palavra : palavras) {
@@ -158,66 +172,51 @@ public class ArvoreFrequenciaGUI extends JFrame {
             }
         }
         long fimAVL = System.nanoTime();
-        double tempoTotalAVL = (fimAVL - inicioAVL) / 1_000_000.0;
-        double tempoBuscaAVL = tempoBuscaAVLNano / 1_000_000.0;
+        avl.stats.tempoTotalMs = (fimAVL - inicioAVL) / 1_000_000.0;
+        avl.stats.tempoBuscaMs = tempoBuscaAVLNano / 1_000_000.0;
 
-        // ======= Imprimir árvores =======
+        // Gera saída ordenada
         bst.printInOrder(bstOutput);
         avl.printInOrder(avlOutput);
 
-        // ======= Mostrar resultados =======
-        StringBuilder relatorio = new StringBuilder();
-        relatorio.append("===== Resultados =====\n\n");
-        relatorio.append("BST - Arvore Binaria de Pesquisa:\n");
-        relatorio.append(String.format("Tempo total (insercao + busca): %.3f ms\n", tempoTotalBST));
-        relatorio.append(String.format("Tempo total apenas de busca: %.3f ms\n\n", tempoBuscaBST));
-
-        relatorio.append("AVL - Arvore AVL:\n");
-        relatorio.append(String.format("Tempo total (insercao + busca): %.3f ms\n", tempoTotalAVL));
-        relatorio.append(String.format("Tempo total apenas de busca: %.3f ms\n\n", tempoBuscaAVL));
-
-        JOptionPane.showMessageDialog(this, relatorio.toString(), "Resultados de Desempenho", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Processamento concluído!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
 
         botaoMostrarBST.setEnabled(true);
         botaoMostrarAVL.setEnabled(true);
         botaoVisualizarEstruturaBST.setEnabled(true);
         botaoVisualizarEstruturaAVL.setEnabled(true);
+        botaoEstatisticasBST.setEnabled(true);
+        botaoEstatisticasAVL.setEnabled(true);
     }
 
     private void mostrarArvore(StringBuilder arvoreStr, String titulo) {
-        JFrame frame = new JFrame(titulo);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setResizable(true);                 // <<-- aqui
         JTextArea textArea = new JTextArea(arvoreStr.toString());
         textArea.setEditable(false);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        textArea.setLineWrap(false);
-        textArea.setCaretPosition(0);
 
         JScrollPane scrollPane = new JScrollPane(textArea);
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-        frame.setSize(900, 700);                  // tamanho inicial
-        frame.setLocationRelativeTo(this);
-        frame.setVisible(true);
+        scrollPane.setPreferredSize(new Dimension(500, 400));
+
+        JOptionPane.showMessageDialog(this, scrollPane, titulo, JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void mostrarEstruturaArvore(String estrutura, String titulo) {
-        JFrame frame = new JFrame(titulo);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setResizable(true);  // <<-- agora redimensionável
-
         JTextArea textArea = new JTextArea(estrutura);
         textArea.setEditable(false);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        textArea.setLineWrap(false); // garante que a estrutura não quebre linhas
-        textArea.setCaretPosition(0); // começa do topo
 
         JScrollPane scrollPane = new JScrollPane(textArea);
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setPreferredSize(new Dimension(500, 600));
 
-        frame.setSize(900, 700); // tamanho inicial da janela
-        frame.setLocationRelativeTo(this); // centraliza em relação à janela principal
-        frame.setVisible(true);
+        JOptionPane.showMessageDialog(this, scrollPane, titulo, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void mostrarEstatisticas(Stats stats, String titulo) {
+        String msg = "Comparações: " + stats.comparacoes
+                + "\nAtribuições: " + stats.atribuicoes
+                + String.format("\nTempo total (inserção + busca): %.3f ms", stats.tempoTotalMs)
+                + String.format("\nTempo total de busca: %.3f ms", stats.tempoBuscaMs);
+        JOptionPane.showMessageDialog(this, msg, titulo, JOptionPane.INFORMATION_MESSAGE);
     }
 
     private String removerAcentos(String str) {
@@ -230,11 +229,9 @@ public class ArvoreFrequenciaGUI extends JFrame {
     }
 }
 
-// BSTree modificada para gerar string da estrutura da árvore
+
 class BSTree {
-
     class Node {
-
         String palavra;
         int frequencia;
         Node left, right;
@@ -269,24 +266,21 @@ class BSTree {
             node.frequencia++;
             stats.atribuicoes++;
         }
-
         return node;
     }
 
-    // Imprime no console
-    public void printInOrder() {
-        printInOrder(root);
-    }
-
-    private void printInOrder(Node node) {
-        if (node != null) {
-            printInOrder(node.left);
-            System.out.println(node.palavra + ": " + node.frequencia);
-            printInOrder(node.right);
+    public boolean search(String palavra) {
+        Node current = root;
+        while (current != null) {
+            stats.comparacoes++;
+            int cmp = palavra.compareTo(current.palavra);
+            if (cmp == 0) return true;
+            else if (cmp < 0) current = current.left;
+            else current = current.right;
         }
+        return false;
     }
 
-    // Imprime no StringBuilder (para usar em GUI etc)
     public void printInOrder(StringBuilder sb) {
         printInOrder(root, sb);
     }
@@ -299,7 +293,6 @@ class BSTree {
         }
     }
 
-    // Visualização da estrutura da árvore
     public String getStructureString() {
         StringBuilder sb = new StringBuilder();
         printStructure(root, sb, "", true);
@@ -307,59 +300,20 @@ class BSTree {
     }
 
     private void printStructure(Node node, StringBuilder sb, String prefix, boolean isTail) {
-        if (node == null) {
-            return;
-        }
-
-        sb.append(prefix)
-                .append(isTail ? "└── " : "├── ")
-                .append(node.palavra)
-                .append(" (")
-                .append(node.frequencia)
-                .append(")")
-                .append("\n");
-
+        if (node == null) return;
+        sb.append(prefix).append(isTail ? "└── " : "├── ").append(node.palavra).append(" (").append(node.frequencia).append(")").append("\n");
         Node[] children = new Node[2];
         int count = 0;
-
-        if (node.left != null) {
-            children[count++] = node.left;
-        }
-        if (node.right != null) {
-            children[count++] = node.right;
-        }
-
+        if (node.left != null) children[count++] = node.left;
+        if (node.right != null) children[count++] = node.right;
         for (int i = 0; i < count; i++) {
             printStructure(children[i], sb, prefix + (isTail ? "    " : "│   "), i == count - 1);
         }
     }
-
-    public boolean search(String palavra) {
-        return searchRec(root, palavra);
-    }
-
-    private boolean searchRec(Node node, String palavra) {
-        if (node == null) {
-            return false;
-        }
-
-        stats.comparacoes++;
-        int cmp = palavra.compareTo(node.palavra);
-        if (cmp == 0) {
-            return true;
-        } else if (cmp < 0) {
-            return searchRec(node.left, palavra);
-        } else {
-            return searchRec(node.right, palavra);
-        }
-    }
 }
 
-// AVLTree modificada para gerar string da estrutura da árvore
 class AVLTree {
-
     class Node {
-
         String palavra;
         int frequencia;
         int altura;
@@ -402,6 +356,18 @@ class AVLTree {
         return balancear(node);
     }
 
+    public boolean search(String palavra) {
+        Node current = root;
+        while (current != null) {
+            stats.comparacoes++;
+            int cmp = palavra.compareTo(current.palavra);
+            if (cmp == 0) return true;
+            else if (cmp < 0) current = current.left;
+            else current = current.right;
+        }
+        return false;
+    }
+
     private void updateAltura(Node node) {
         node.altura = 1 + Math.max(getAltura(node.left), getAltura(node.right));
         stats.atribuicoes++;
@@ -418,37 +384,26 @@ class AVLTree {
     private Node balancear(Node node) {
         int balance = getBalanceamento(node);
 
-        if (balance > 1 && getBalanceamento(node.left) >= 0) {
-            return rotacaoDireita(node);
-        }
-
+        if (balance > 1 && getBalanceamento(node.left) >= 0) return rotacaoDireita(node);
         if (balance > 1 && getBalanceamento(node.left) < 0) {
             node.left = rotacaoEsquerda(node.left);
             return rotacaoDireita(node);
         }
-
-        if (balance < -1 && getBalanceamento(node.right) <= 0) {
-            return rotacaoEsquerda(node);
-        }
-
+        if (balance < -1 && getBalanceamento(node.right) <= 0) return rotacaoEsquerda(node);
         if (balance < -1 && getBalanceamento(node.right) > 0) {
             node.right = rotacaoDireita(node.right);
             return rotacaoEsquerda(node);
         }
-
         return node;
     }
 
     private Node rotacaoDireita(Node y) {
         Node x = y.left;
         Node T2 = x.right;
-
         x.right = y;
         y.left = T2;
-
         updateAltura(y);
         updateAltura(x);
-
         stats.atribuicoes += 3;
         return x;
     }
@@ -456,31 +411,14 @@ class AVLTree {
     private Node rotacaoEsquerda(Node x) {
         Node y = x.right;
         Node T2 = y.left;
-
         y.left = x;
         x.right = T2;
-
         updateAltura(x);
         updateAltura(y);
-
         stats.atribuicoes += 3;
         return y;
     }
 
-    // Imprime no console
-    public void printInOrder() {
-        printInOrder(root);
-    }
-
-    private void printInOrder(Node node) {
-        if (node != null) {
-            printInOrder(node.left);
-            System.out.println(node.palavra + ": " + node.frequencia);
-            printInOrder(node.right);
-        }
-    }
-
-    // Imprime no StringBuilder (para GUI, etc)
     public void printInOrder(StringBuilder sb) {
         printInOrder(root, sb);
     }
@@ -493,7 +431,6 @@ class AVLTree {
         }
     }
 
-    // Visualização da estrutura da árvore
     public String getStructureString() {
         StringBuilder sb = new StringBuilder();
         printStructure(root, sb, "", true);
@@ -501,56 +438,21 @@ class AVLTree {
     }
 
     private void printStructure(Node node, StringBuilder sb, String prefix, boolean isTail) {
-        if (node == null) {
-            return;
-        }
-
-        sb.append(prefix)
-                .append(isTail ? "└── " : "├── ")
-                .append(node.palavra)
-                .append(" (")
-                .append(node.frequencia)
-                .append(")")
-                .append("\n");
-
+        if (node == null) return;
+        sb.append(prefix).append(isTail ? "└── " : "├── ").append(node.palavra).append(" (").append(node.frequencia).append(")").append("\n");
         Node[] children = new Node[2];
         int count = 0;
-
-        if (node.left != null) {
-            children[count++] = node.left;
-        }
-        if (node.right != null) {
-            children[count++] = node.right;
-        }
-
+        if (node.left != null) children[count++] = node.left;
+        if (node.right != null) children[count++] = node.right;
         for (int i = 0; i < count; i++) {
             printStructure(children[i], sb, prefix + (isTail ? "    " : "│   "), i == count - 1);
-        }
-    }
-
-    public boolean search(String palavra) {
-        return searchRec(root, palavra);
-    }
-
-    private boolean searchRec(Node node, String palavra) {
-        if (node == null) {
-            return false;
-        }
-
-        stats.comparacoes++;
-        int cmp = palavra.compareTo(node.palavra);
-        if (cmp == 0) {
-            return true;
-        } else if (cmp < 0) {
-            return searchRec(node.left, palavra);
-        } else {
-            return searchRec(node.right, palavra);
         }
     }
 }
 
 class Stats {
-
     public int comparacoes = 0;
     public int atribuicoes = 0;
+    public double tempoTotalMs = 0.0;
+    public double tempoBuscaMs = 0.0;
 }
